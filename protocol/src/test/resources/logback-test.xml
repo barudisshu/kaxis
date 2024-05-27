@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2024. Galudisu@gmail.com
+  ~
+  ~ All rights reserved.
+  -->
+
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>true</withJansi>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern> %-30(%yellow(%d{ISO8601}) %blue(%-45.45thread)) %highlight(%-5level) %cyan(%-25.25logger{5}) - %msg [%X] \(%class{25}.%method:%line\)%n </pattern>
+    </encoder>
+  </appender>
+  <appender name="CapturingAppender" class="org.apache.pekko.actor.testkit.typed.internal.CapturingAppender"/>
+  <logger name="org.apache.pekko.actor.testkit.typed.internal.CapturingAppenderDelegate">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <logger name="io.kaxis" level="DEBUG" additivity="false">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <logger name="ch.qos.logback" level="ERROR" additivity="false">
+    <appender-ref ref="STDOUT" />
+  </logger>
+
+  <root level="DEBUG">
+    <appender-ref ref="STDOUT"/>
+    <appender-ref ref="CapturingAppender"/>
+  </root>
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+</configuration>

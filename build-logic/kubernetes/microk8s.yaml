@@ -1,0 +1,173 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kaxis-seed
+  labels:
+    app: kaxis-seed
+spec:
+  ports:
+    - port: 4684
+      name: http-gossip
+      targetPort: 4684
+    - port: 6684
+      name: http-mgt
+      targetPort: 6684
+  type: LoadBalancer
+  sessionAffinity: None
+  publishNotReadyAddresses: true
+  selector:
+    app: kaxis-seed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kaxis-seed-tcp
+  labels:
+    app: kaxis-seed-tcp
+spec:
+  ports:
+    - port: 5684
+      name: tcp-udp
+      targetPort: 5684
+      protocol: UDP
+  type: LoadBalancer
+  sessionAffinity: None
+  publishNotReadyAddresses: true
+  selector:
+    app: kaxis-seed
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kaxis-seed
+spec:
+  selector:
+    matchLabels:
+      app: kaxis-seed
+  serviceName: "kaxis-seed"
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: kaxis-seed
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: kaxis-seed
+          image: localhost:32000/kaxis-jdk17-slim:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "500m"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SEED_NODES.0
+              value: pekko://Kaxis@kaxis-seed-0.kaxis-seed:4684
+            - name: SEED_NODES.1
+              value: pekko://Kaxis@kaxis-seed-1.kaxis-seed:4684
+            - name: ROLES.0
+              value: seed
+            - name: SHARDING_ROLE
+              value: sharding
+            - name: HOST_NAME
+              value: $(POD_NAME).kaxis-seed
+            - name: HOST_PORT
+              value: "4684"
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/bash", "-c", "sleep 10" ]
+          ports:
+            - containerPort: 5684
+              name: tcp-udp
+            - containerPort: 4684
+              name: http-gossip
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaxis-worker
+spec:
+  selector:
+    matchLabels:
+      app: kaxis-worker
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: kaxis-worker
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: kaxis-worker
+          image: localhost:32000/kaxis-jdk17-slim:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "500m"
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SEED_NODES.0
+              value: pekko://Kaxis@kaxis-seed-0.kaxis-seed:4684
+            - name: SEED_NODES.1
+              value: pekko://Kaxis@kaxis-seed-1.kaxis-seed:4684
+            - name: ROLES.0
+              value: sharding
+            - name: SHARDING_ROLE
+              value: sharding
+            - name: HOST_NAME
+              value: "$(POD_NAME)"
+            - name: HOST_PORT
+              value: "4684"
+          livenessProbe:
+            httpGet:
+              port: 6684
+              path: health/alive
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              port: 6684
+              path: health/ready
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          ports:
+            - containerPort: 5684
+              name: tcp-udp
+            - containerPort: 4684
+              name: http-gossip
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kaxis-worker
+spec:
+  maxReplicas: 3
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kaxis-worker
+  targetCPUUtilizationPercentage: 15
+---

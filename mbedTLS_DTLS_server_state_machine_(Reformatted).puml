@@ -1,0 +1,67 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+'scale 350 width
+
+state "mbedTLS DTLS server state machine (Reformatted)" as DTLS {
+
+  state S0 #line:green : this is the begin state of the implementation.
+  [*] -[#green]-> S0
+  S0 --> S0: RSAClientKeyExchange/-\n Finished/-\n ApplicationData/-\n AlertWarningCloseNotify/-
+
+  state S1 #line:green : Sending the first ClientHello results in the state transition S0 -> S1.\nThe server responded with a HelloVerifyRequest.
+  S0 -[#green]-> S1: ClientHello/HELLO_VERIFY_REQUEST
+  note on link
+    This is the happy path of the handshake. This is normal behavior.
+  end note
+  S0 --> S2: ChangeCipherSpec/-
+
+  state S3 #line:green : Sending the second ClientHello results in the state transition S0 -> S1 -> S3.\nThe server responded with the three ServerHello, Certificate, ServerHelloDone\n messages. All normal behavior thus far.
+  S1 --> S1: RSAClientKeyExchange/-\n Finished/-\n ApplicationData/-\n AlertWarningCloseNotify/-
+  note on link
+    Sending the messages RSAClientKeyExchange, Finished or AlertWarningCloseNotify,
+    the implementation stays in the same state.
+    This is wierd behavior.
+  end note
+  S1 --> S2: ChangeCipherSpec/-
+  S1 -[#green]-> S3: ClientHello/SERVER_HELLO|CERTIFICATE|SERVER_HELLO_DONE
+  note on link
+    This is the happy path of the handshake. This is normal behavior.
+  end note
+
+  S2 --> S2: ClientHello/-\n RSAClientKeyExchange/-\n ChangeCipherSpec/-\n Finished/-\n ApplicationData/-\n AlertWarningCloseNotify/-
+
+  state S4 #line:green : Sending the RSAClientKeyExchange message results in the state transition S0 -> S1 -> S3 -> S4.\nThe server did not respond with a message,\nbecause it is waiting for the next messages to come.
+  S3 --> S1: ClientHello/-\n ApplicationData/-\n Finished/-\n AlertWarningCloseNotify/-
+  note on link
+    We are able to take a step back from S3 to S1.Sending three
+    ClientHello messages is equal to sending one ClientHello message.
+    This is wierd behaviour.
+  end note
+  S3 --> S2: ChangeCipherSpec/-
+  S3 -[#green]-> S4: RSAClientKeyExchange/-
+  note on link
+    This is the happy path of the handshake. This is normal behavior.
+  end note
+
+  state S5 #line:green : Sending the ChangeCipherSpec message results in the state transition\nS0 -> S1 -> S3 -> S4 -> S5.
+  S4 -[#green]-> S4: ApplicationData/-
+  S4 --> S1: ClientHello/ALERT_FATAL_UNEXPECTED_MESSAGE\n RSAClientKeyExchange/ALERT_FATAL_UNEXPECTED_MESSAGE\n Finished/ALERT_FATAL_UNEXPECTED_MESSAGE\n AlertWarningCloseNotify/-
+  note on link
+    Sending a ClientHello, RSAClientKeyExchange or Finished message
+    from S4 results in a ALERT_FATAL_DECODE_ERROR.
+    However, we end up in S1, where we can continue our handshake
+    with a ClientHello message. This is wierd behavior.
+  end note
+
+  S4 -[#green]-> S5: ChangeCipherSpec/-
+  note on link
+    This is the happy path of the handshake. This is normal behavior.
+  end note
+
+  state S2 : Sending the final Finished message, results\nin a ALERT_FATAL_DECODE_ERROR. The server was not able\nto decrypt the encrypted finished message.\nand send a FATAL ERROR. The handshake has failed.
+  S5 --> S5: ApplicationData/-
+  S5 --> S2: ClientHello/ALERT_FATAL_DECODE_ERROR\n RSAClientKeyExchange/ALERT_FATAL_DECODE_ERROR\n ChangeCipherSpec/-\n Finished/ALERT_FATAL_DECODE_ERROR\n AlertWarningCloseNotify/-
+}
+
+@enduml

@@ -1,0 +1,6 @@
+:experimental:
+:myprojectbasedir: {asciidoctorconfigdir}
+:icons: font
+:source-highlighter: rouge
+:docinfo: shared
+:sectanchors:

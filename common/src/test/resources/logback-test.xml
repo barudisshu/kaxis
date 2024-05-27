@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2024. Galudisu@gmail.com
+  ~
+  ~ All rights reserved.
+  -->
+
+<configuration>
+  <!-- Silence initial setup logging from Logback -->
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+  <!-- This is a development logging configuration that logs to standard out, for an example of a production
+       logging config, see the Pekko docs: https://doc.org.apache.pekko.io/docs/pekko/2.6/typed/logging.html#logback -->
+  <appender name="STDOUT" target="System.out" class="ch.qos.logback.core.ConsoleAppender">
+    <withJansi>true</withJansi>
+    <encoder>
+      <pattern>%-30(%yellow(%d{ISO8601}) %blue(%-25.25thread)) %highlight(%-5level) %cyan(%-25.25logger{5}) - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>1024</queueSize>
+    <neverBlock>true</neverBlock>
+    <appender-ref ref="STDOUT"/>
+  </appender>
+  <!--
+  Logging from tests are silenced by this appender. When there is a test failure
+  the captured logging events are flushed to the appenders defined for the
+  org.apache.pekko.actor.testkit.typed.internal.CapturingAppenderDelegate logger.
+  -->
+  <appender name="CapturingAppender" class="org.apache.pekko.actor.testkit.typed.internal.CapturingAppender"/>
+
+  <!--
+  The appenders defined for this CapturingAppenderDelegate logger are used
+  when there is a test failure and all logging events from the test are
+  flushed to these appenders.
+  -->
+  <logger name="org.apache.pekko.actor.testkit.typed.internal.CapturingAppenderDelegate">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+  <logger name="io.kaxis" level="DEBUG"/>
+
+  <root level="INFO">
+    <appender-ref ref="ASYNC"/>
+    <appender-ref ref="CapturingAppender"/>
+  </root>
+
+</configuration>
+
