@@ -1,7 +1,11 @@
 /*
- * Copyright (c) 2024. Galudisu@gmail.com
+ * COPYRIGHT Cplier 2024
  *
- * All rights reserved.
+ * The copyright to the computer program(s) herein is the property of
+ * Cplier Inc. The programs may be used and/or copied only with written
+ * permission from Cplier Inc. or in accordance with the terms and
+ * conditions stipulated in the agreement/contract under which the
+ * program(s) have been supplied.
  */
 
 package io.kaxis.dtls.cipher
@@ -16,13 +20,14 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * A generic Authenticated Encryption with Associated Data (AEAD) block cipher mode.
+ * A generic `Authenticated Encryption with Associated Data (AEAD，带有关联资料的认证加密, AE的变种)` block cipher mode.
  *
  * Usually cryptographic applications do not only require to have the data encrypted,
- * hence confidential, but also the dat at obe available only to authorised people.
+ * hence confidential, but also the data to be available only to authorized people.
+ *
  * The reason behind this is that an attacker can intercept this information, and change it,
  * replacing part or all with other information encrypted in the same way so the recipient will not
- * understand the modification. In order to solve this problem, a `Message Authentication Code (MAC)`
+ * understand the modification. In order to solve this problem, a `Message Authentication Code (MAC，信息识别码)`
  * is used, which provides the integrity of a message, and this is used often in combination with
  * encryption to provide both confidentiality and integrity.
  */
@@ -52,9 +57,8 @@ object AeadBlockCipher {
    * @param transformation transformation.
    * @return `true`, if transformation is "AES/CCM/???", `false`, otherwise.
    */
-  fun isAesCcm(transformation: String): Boolean {
-    return AES_CCM_NO_PADDING.equals(transformation, true) || AES_CCM.equals(transformation, true)
-  }
+  fun isAesCcm(transformation: String): Boolean =
+    AES_CCM_NO_PADDING.equals(transformation, true) || AES_CCM.equals(transformation, true)
 
   /**
    * Test, if cipher is supported.
@@ -124,8 +128,8 @@ object AeadBlockCipher {
     crypted: ByteArray,
     cryptedOffset: Int,
     cryptedLength: Int,
-  ): ByteArray {
-    return if (isAesCcm(cipherSuite.transformation)) {
+  ): ByteArray =
+    if (isAesCcm(cipherSuite.transformation)) {
       CcmBlockCipher.decrypt(
         key,
         nonce,
@@ -138,7 +142,6 @@ object AeadBlockCipher {
     } else {
       jreDecrypt(cipherSuite, key, nonce, associatedData, crypted, cryptedOffset, cryptedLength)
     }
-  }
 
   /**
    * Encrypt with AEAD cipher.
@@ -171,13 +174,12 @@ object AeadBlockCipher {
     nonce: ByteArray,
     associatedData: ByteArray,
     plaintext: ByteArray,
-  ): ByteArray {
-    return if (isAesCcm(cipherSuite.transformation)) {
+  ): ByteArray =
+    if (isAesCcm(cipherSuite.transformation)) {
       CcmBlockCipher.encrypt(cipherSuite.recordIvLength, key, nonce, associatedData, plaintext, cipherSuite.macLength)
     } else {
       jreEncrypt(cipherSuite.recordIvLength, cipherSuite, key, nonce, associatedData, plaintext)
     }
-  }
 
   /**
    * Decrypt with jre AEAD cipher.

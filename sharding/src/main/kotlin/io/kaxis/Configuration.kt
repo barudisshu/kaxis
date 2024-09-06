@@ -1,7 +1,11 @@
 /*
- * Copyright (c) 2024. Galudisu@gmail.com
+ * COPYRIGHT Cplier 2024
  *
- * All rights reserved.
+ * The copyright to the computer program(s) herein is the property of
+ * Cplier Inc. The programs may be used and/or copied only with written
+ * permission from Cplier Inc. or in accordance with the terms and
+ * conditions stipulated in the agreement/contract under which the
+ * program(s) have been supplied.
  */
 
 package io.kaxis
@@ -216,11 +220,14 @@ interface Configuration : CborSerializable {
   val signatureAndHashAlgorithms: MutableList<SignatureAndHashAlgorithm>
     get() {
       return try {
-        config.getStringList(
-          "SIGNATURE_AND_HASH_ALGORITHMS",
-        ).map(SignatureAndHashAlgorithm::valueOf).toMutableList().ifEmpty {
-          mutableListOf(SignatureAndHashAlgorithm.SHA256_WITH_ECDSA)
-        }
+        config
+          .getStringList(
+            "SIGNATURE_AND_HASH_ALGORITHMS",
+          ).map(SignatureAndHashAlgorithm::valueOf)
+          .toMutableList()
+          .ifEmpty {
+            mutableListOf(SignatureAndHashAlgorithm.SHA256_WITH_ECDSA)
+          }
       } catch (e: Throwable) {
         mutableListOf(SignatureAndHashAlgorithm.SHA256_WITH_ECDSA)
       }
@@ -235,9 +242,10 @@ interface Configuration : CborSerializable {
     get() {
       val default = arrayListOf(CipherSuite.CertificateKeyAlgorithm.EC, CipherSuite.CertificateKeyAlgorithm.RSA)
       return try {
-        CipherSuite.CertificateKeyAlgorithm.getTypesByNames(
-          config.getStringList("CERTIFICATE_KEY_ALGORITHMS"),
-        ).ifEmpty { default }
+        CipherSuite.CertificateKeyAlgorithm
+          .getTypesByNames(
+            config.getStringList("CERTIFICATE_KEY_ALGORITHMS"),
+          ).ifEmpty { default }
       } catch (e: Throwable) {
         default
       }

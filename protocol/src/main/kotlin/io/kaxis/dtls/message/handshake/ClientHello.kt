@@ -1,7 +1,11 @@
 /*
- * Copyright (c) 2024. Galudisu@gmail.com
+ * COPYRIGHT Cplier 2024
  *
- * All rights reserved.
+ * The copyright to the computer program(s) herein is the property of
+ * Cplier Inc. The programs may be used and/or copied only with written
+ * permission from Cplier Inc. or in accordance with the terms and
+ * conditions stipulated in the agreement/contract under which the
+ * program(s) have been supplied.
  */
 
 package io.kaxis.dtls.message.handshake
@@ -39,9 +43,7 @@ class ClientHello : HelloHandshakeMessage {
      * @throws HandshakeException if any of the extensions included in the message is of an unsupported type
      */
     @Throws(HandshakeException::class)
-    fun fromReader(reader: DatagramReader): ClientHello {
-      return ClientHello(reader)
-    }
+    fun fromReader(reader: DatagramReader): ClientHello = ClientHello(reader)
   }
 
   /**
@@ -70,9 +72,6 @@ class ClientHello : HelloHandshakeMessage {
    * This is a list of the compression methods supported by the client, sorted by client preference.
    */
   val compressionMethods: MutableList<CompressionMethod>
-    get() {
-      return Collections.unmodifiableList(field)
-    }
 
   /**
    * Creates a _Client Hello_ message to be sent to a server.
@@ -125,23 +124,22 @@ class ClientHello : HelloHandshakeMessage {
       addExtension(SupportedPointFormatsExtension.DEFAULT_POINT_FORMATS_EXTENSION)
     }
 
-    // the supported signature and hash algorithms
-    if (supportedSignatureAndHashAlgorithms.isNotEmpty()) {
-      var ssaa = supportedSignatureAndHashAlgorithms
-      if (useCertificateTypeRawPublicKeyOnly(supportedClientCertificateTypes) &&
-        useCertificateTypeRawPublicKeyOnly(
-          supportedServerCertificateTypes,
-        )
-      ) {
-        if (supportedCipherSuites != null) {
-          val certificateKeyAlgorithms = CipherSuite.getCertificateKeyAlgorithms(supportedCipherSuites)
-          ssaa = SignatureAndHashAlgorithm.getCompatibleSignatureAlgorithms(ssaa, certificateKeyAlgorithms)
-        }
-      }
-      addExtension(SignatureAlgorithmsExtension(ssaa))
-    }
-
     if (CipherSuite.containsCipherSuiteRequiringCertExchange(supportedCipherSuites)) {
+      // the supported signature and hash algorithms
+      if (supportedSignatureAndHashAlgorithms.isNotEmpty()) {
+        var ssaa = supportedSignatureAndHashAlgorithms
+        if (useCertificateTypeRawPublicKeyOnly(supportedClientCertificateTypes) &&
+          useCertificateTypeRawPublicKeyOnly(
+            supportedServerCertificateTypes,
+          )
+        ) {
+          if (supportedCipherSuites != null) {
+            val certificateKeyAlgorithms = CipherSuite.getCertificateKeyAlgorithms(supportedCipherSuites)
+            ssaa = SignatureAndHashAlgorithm.getCompatibleSignatureAlgorithms(ssaa, certificateKeyAlgorithms)
+          }
+        }
+        addExtension(SignatureAlgorithmsExtension(ssaa))
+      }
       // the certificate types the client is able to provide to the server
       if (useCertificateTypeExtension(supportedClientCertificateTypes)) {
         val clientCertificateType = ClientCertificateTypeExtension(supportedClientCertificateTypes)
@@ -225,23 +223,50 @@ class ClientHello : HelloHandshakeMessage {
     val indentation2 = Utility.indentation(indent + 2)
     val ck = cookie
     if (ck != null) {
-      sb.append(indentation).append("Cookie Length: ").append(ck.size).append(" bytes")
+      sb
+        .append(indentation)
+        .append("Cookie Length: ")
+        .append(ck.size)
+        .append(" bytes")
       if (ck.isNotEmpty()) {
-        sb.append(indentation).append("Cookie: ").append(Utility.byteArray2HexString(ck)).append(Utility.LINE_SEPARATOR)
+        sb
+          .append(indentation)
+          .append("Cookie: ")
+          .append(Utility.byteArray2HexString(ck))
+          .append(Utility.LINE_SEPARATOR)
       }
     }
-    sb.append(indentation).append("Cipher Suites (").append(supportedCipherSuites.size).append(" suites, ")
-      .append(supportedCipherSuites.size * CipherSuite.CIPHER_SUITE_BITS / Byte.SIZE_BITS).append(" bytes)")
+    sb
+      .append(indentation)
+      .append("Cipher Suites (")
+      .append(supportedCipherSuites.size)
+      .append(" suites, ")
+      .append(supportedCipherSuites.size * CipherSuite.CIPHER_SUITE_BITS / Byte.SIZE_BITS)
+      .append(" bytes)")
       .append(Utility.LINE_SEPARATOR)
 
     supportedCipherSuites.forEach { cipher ->
-      sb.append(indentation2).append("Cipher Suite: ").append(cipher).append(Utility.LINE_SEPARATOR)
+      sb
+        .append(indentation2)
+        .append("Cipher Suite: ")
+        .append(cipher)
+        .append(Utility.LINE_SEPARATOR)
     }
-    sb.append(indentation).append("Compression Methods (").append(compressionMethods.size).append(" methods, ")
-      .append(compressionMethods.size).append(" bytes)").append(Utility.LINE_SEPARATOR)
+    sb
+      .append(indentation)
+      .append("Compression Methods (")
+      .append(compressionMethods.size)
+      .append(" methods, ")
+      .append(compressionMethods.size)
+      .append(" bytes)")
+      .append(Utility.LINE_SEPARATOR)
 
     compressionMethods.forEach { method ->
-      sb.append(indentation2).append("Compression Method: ").append(method).append(Utility.LINE_SEPARATOR)
+      sb
+        .append(indentation2)
+        .append("Compression Method: ")
+        .append(method)
+        .append(Utility.LINE_SEPARATOR)
     }
     sb.append(extensions.toString(indent + 1))
     return sb.toString()
@@ -276,17 +301,13 @@ class ClientHello : HelloHandshakeMessage {
     val rawMessage = toByteArray()
     val head =
       sessionId.length() + RANDOM_BYTES + (VERSION_BITS + VERSION_BITS + SESSION_ID_LENGTH_BITS) / Byte.SIZE_BITS
-    var tail = head + COOKIE_LENGTH_BITS / Byte.SIZE_BITS + MESSAGE_HEADER_LENGTH_BYTES
-    if (cookie != null) {
-      tail += cookie!!.size
-    }
+    val tail = head + (cookie?.size ?: 0) + COOKIE_LENGTH_BITS / Byte.SIZE_BITS + MESSAGE_HEADER_LENGTH_BYTES
     val tailLength =
       (
-        CIPHER_SUITES_LENGTH_BITS + CIPHER_SUITES_LENGTH_BITS +
+        CIPHER_SUITES_LENGTH_BITS + COMPRESSION_METHODS_LENGTH_BITS +
           supportedCipherSuites.size * CipherSuite.CIPHER_SUITE_BITS +
           compressionMethods.size * CompressionMethod.COMPRESSION_METHOD_BITS
       ) / Byte.SIZE_BITS
-
     hmac.update(rawMessage, MESSAGE_HEADER_LENGTH_BYTES, head)
     hmac.update(rawMessage, tail, tailLength)
   }
@@ -305,9 +326,8 @@ class ClientHello : HelloHandshakeMessage {
    * @param serverCipherSuite server's cipher suites.
    * @return list of common cipher suites
    */
-  fun getCommonCipherSuites(serverCipherSuite: MutableList<CipherSuite>): MutableList<CipherSuite> {
-    return CipherSuite.preselectCipherSuites(serverCipherSuite, supportedCipherSuites)
-  }
+  fun getCommonCipherSuites(serverCipherSuite: MutableList<CipherSuite>): MutableList<CipherSuite> =
+    CipherSuite.preselectCipherSuites(serverCipherSuite, supportedCipherSuites)
 
   /**
    * Add compression method.

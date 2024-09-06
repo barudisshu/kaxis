@@ -10,11 +10,22 @@ Xiang Chen <galudisu@gmail.com>
 Distributed to sharding your connected vehicle over DTLS/CoAP...
 
 == FSM
+
 .mbedTLS DTLS server state machine
-[plantuml, DTLS, svg]
+[plantuml,DTLS,svg]
 ----
 include::mbedTLS_DTLS_server_state_machine_(Reformatted).puml[]
 ----
+
+the key point of rewrite this protocol is:
+
+- distributed state machine to negotiate the handshake message.
+- once the handshake is finished, sharding by `CID` of each message on the server side, so that we don't need to re-handshake or resumption again.
+
+the features of these implementations are:
+
+- low-carbon(低碳) cost. no more heartbeat detection nor frequent cipher-suite/certificate exchange.
+- geo-red. connection will be routed to another node while the current worker node is crash without re-handshake.
 
 == Running
 
@@ -34,16 +45,37 @@ include::mbedTLS_DTLS_server_state_machine_(Reformatted).puml[]
 ----
 
 == Testing UDP
+
 [source,bash]
 ----
 nc -u 0.0.0.0 5684
 ----
 
 == Testing DTLS
+
+image::screenshot_dtls_1_2.png[]
+
 [source,bash]
 ----
 openssl s_client -dtls -CAfile interoperability-tests/rootTrustStore.pem -cert interoperability-tests/client.pem -key interoperability-tests/clientPrivateKey.pem -connect 127.0.0.1:5684 -debug
 ----
+
+== DTLS Call Flow implementation
+
+Call on the **FLIGHT**.
+
+.Handshake
+image::build-logic/imgs/152255958-1788d714-fd2b-4cea-add4-17f8e3162b06.png[Handshake]
+
+**Resumption** that once session already exists.
+
+.Resumption
+image::build-logic/imgs/152255981-1cdfc4f8-5b76-40ef-b5e2-fa148cf6f2d9.png[Resumption]
+
+The Finite State Machine of handshake.
+
+.FSM
+image::build-logic/imgs/152256099-150df823-9884-45e4-9c0c-8c4dc5a833ad.png[FSM]
 
 
 

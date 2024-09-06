@@ -7,7 +7,7 @@ Xiang Chen <galudisu@gmail.com>
 :url-repo: https://github.com/barudisshu/kaxis.git
 
 [quote,by Xiang Chen]
-Distributed to sharding your connected vehicle over DTLS/CoAP...
+基于DTLS/CoAP协议的分布式物联网平台...
 
 == FSM
 .mbedTLS DTLS server state machine
@@ -18,14 +18,14 @@ include::mbedTLS_DTLS_server_state_machine_(Reformatted).puml[]
 
 == Running
 
-.Seed nodes' initialization.
+.初始化种子节点.
 [source,bash]
 ----
 ./gradlew -p sharding run --args=4684
 ./gradlew -p sharding run --args=4685
 ----
 
-.Work nodes' joining.
+.worker节点启动.
 [source,bash]
 ----
 ./gradlew -p sharding run --args=4686
@@ -48,7 +48,5 @@ openssl s_client -dtls -CAfile interoperability-tests/rootTrustStore.pem -cert i
 
 
 '''
-- I have lost my job now...
-- One day I will be back to finish the rest part of the DTLS impl...
-- If you are intrested in AIOT, have a glance on link:Designing_Connected_Products.pdf[Designing Connected Products.pdf]
+AIOT将是未来....
 

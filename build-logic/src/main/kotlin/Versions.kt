@@ -1,7 +1,11 @@
 /*
- * Copyright (c) 2024. Galudisu@gmail.com
+ * COPYRIGHT Cplier 2024
  *
- * All rights reserved.
+ * The copyright to the computer program(s) herein is the property of
+ * Cplier Inc. The programs may be used and/or copied only with written
+ * permission from Cplier Inc. or in accordance with the terms and
+ * conditions stipulated in the agreement/contract under which the
+ * program(s) have been supplied.
  */
 
 object Versions {
@@ -16,7 +20,7 @@ object Versions {
   const val SCALA_VERSION = "2.13"
 
   // pekko
-  const val PEKKO_VERSION = "1.1.0-M1"
+  const val PEKKO_VERSION = "1.1.0"
 
   const val PEKKO_MANAGEMENT_VERSION = "1.0.0"
 

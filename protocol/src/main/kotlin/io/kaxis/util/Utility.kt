@@ -1,7 +1,11 @@
 /*
- * Copyright (c) 2024. Galudisu@gmail.com
+ * COPYRIGHT Cplier 2024
  *
- * All rights reserved.
+ * The copyright to the computer program(s) herein is the property of
+ * Cplier Inc. The programs may be used and/or copied only with written
+ * permission from Cplier Inc. or in accordance with the terms and
+ * conditions stipulated in the agreement/contract under which the
+ * program(s) have been supplied.
  */
 
 @file:JvmName("Utility")
@@ -76,7 +80,9 @@ object Utility {
   fun isPrivateIp(ipAddr: String): Boolean {
     try {
       val address = InetAddress.getByName(ipAddr)
-      return address.isSiteLocalAddress || address.isLoopbackAddress || address.isLinkLocalAddress ||
+      return address.isSiteLocalAddress ||
+        address.isLoopbackAddress ||
+        address.isLinkLocalAddress ||
         isCarrierGradeNatIp(
           address,
         )
@@ -189,13 +195,14 @@ object Utility {
   fun charArray2hex(charArray: CharArray?): String? =
     charArray?.let {
       val length = it.size
-      StringBuilder(length * 2).apply sb@{
-        for (index in 0..<length) {
-          val value = it[index].code and 0xFF
-          this@sb.append(BIN_TO_HEX_ARRAY[value ushr 4])
-          this@sb.append(BIN_TO_HEX_ARRAY[value and 0x0F])
-        }
-      }.toString()
+      StringBuilder(length * 2)
+        .apply sb@{
+          for (index in 0..<length) {
+            val value = it[index].code and 0xFF
+            this@sb.append(BIN_TO_HEX_ARRAY[value ushr 4])
+            this@sb.append(BIN_TO_HEX_ARRAY[value and 0x0F])
+          }
+        }.toString()
     }
 
   /**
@@ -264,16 +271,17 @@ object Utility {
   ): String =
     if (byteArray?.isNotEmpty() != null) {
       val maximum = if (max == 0 || max > byteArray.size) byteArray.size else max
-      StringBuilder(maximum * (if (sep == NO_SEPARATOR) 2 else 3)).apply sb@{
-        for (index in 0..<maximum) {
-          val value = byteArray[index].toInt() and 0xFF
-          this@sb.append(BIN_TO_HEX_ARRAY[value ushr 4])
-          this@sb.append(BIN_TO_HEX_ARRAY[value and 0x0F])
-          if (sep != NO_SEPARATOR && index < max - 1) {
-            this@sb.append(sep)
+      StringBuilder(maximum * (if (sep == NO_SEPARATOR) 2 else 3))
+        .apply sb@{
+          for (index in 0..<maximum) {
+            val value = byteArray[index].toInt() and 0xFF
+            this@sb.append(BIN_TO_HEX_ARRAY[value ushr 4])
+            this@sb.append(BIN_TO_HEX_ARRAY[value and 0x0F])
+            if (sep != NO_SEPARATOR && index < max - 1) {
+              this@sb.append(sep)
+            }
           }
-        }
-      }.toString()
+        }.toString()
     } else {
       "--"
     }
@@ -287,9 +295,7 @@ object Utility {
     byteArray: ByteArray?,
     offset: Int,
     length: Int,
-  ): String {
-    return HexUtil.prettyHexDump(byteArray, offset, length)
-  }
+  ): String = HexUtil.prettyHexDump(byteArray, offset, length)
 
   /**
    * Decode base64 string into byte array.
@@ -417,17 +423,9 @@ object Utility {
     val tailLength = tail.length
     if (tailLength > 0) {
       val end = builder.length - tailLength
-      if (end > 0) {
+      if (end > 0 && builder.indexOf(tail, end) == end) {
+        builder.setLength(end)
         truncated = true
-        for (index in 0..<tailLength) {
-          if (builder[index + end] != tail[index]) {
-            truncated = false
-            break
-          }
-        }
-        if (truncated) {
-          builder.setLength(end)
-        }
       }
     }
     return truncated
@@ -638,9 +636,7 @@ object Utility {
    * @return `true` if the name is a valid host name.
    */
   @JvmStatic
-  fun isValidHostName(hostName: String?): Boolean {
-    return (hostName != null) && HOSTNAME_PATTERN.matcher(hostName).matches()
-  }
+  fun isValidHostName(hostName: String?): Boolean = (hostName != null) && HOSTNAME_PATTERN.matcher(hostName).matches()
 
   /**
    * Checks if a given string is a literal IP address.
@@ -648,9 +644,7 @@ object Utility {
    * @return `true` if the address is a literal IP address.
    */
   @JvmStatic
-  fun isLiteralIpAddress(address: String?): Boolean {
-    return (address != null) && IP_PATTERN.matcher(address).matches()
-  }
+  fun isLiteralIpAddress(address: String?): Boolean = (address != null) && IP_PATTERN.matcher(address).matches()
 
   /**
    * Get URI hostname from address.
